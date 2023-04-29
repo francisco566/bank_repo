@@ -23,15 +23,20 @@ def make_account():
 def login():
     correct_password = 'N'
     while correct_password != 'Y':
-        password1 = int(input("Password: "))
+        password1 = int(input("Enter your password: "))
         cursor.execute(f"SELECT idbank_accounts, firstname FROM bank_accounts WHERE password = {password1}")
         if cursor.fetchone() != None:
             cursor.execute(f"SELECT idbank_accounts FROM bank_accounts WHERE password = {password1}")
             id_raw = cursor.fetchone()
             correct_password = 'Y'
+            cursor.execute(f"SELECT firstname, lastname FROM bank_accounts WHERE password = {password1}")
+            name_raw = cursor.fetchone()
+            name_intermediate = str(name_raw)
+            name_final = name_intermediate.replace("(","").replace(",","").replace(")","").replace("'","")
+            print(f'Welcome {name_final}!')
             operation(id_raw)
         else:
-            print("Try again")
+            print("An account with that password does not exist. Try again: ")
 
 def get_deposit(id):
     id1 = str(id)
@@ -44,6 +49,7 @@ def get_deposit(id):
     deposit_amount = int(input("How much would you like to deposit?"))
     new_balance = balance_final + deposit_amount
     cursor.execute(f"UPDATE bank_accounts SET balance = {new_balance} WHERE idbank_accounts = {id3}")
+    print(f'Deposit succesfully made!\nYour new balance is ${new_balance}')
 
 def get_withdrawal(id):
     id1 = str(id)
@@ -56,6 +62,7 @@ def get_withdrawal(id):
     deposit_amount = int(input("How much would you like to withdraw?"))
     new_balance = balance_final - deposit_amount
     cursor.execute(f"UPDATE bank_accounts SET balance = {new_balance} WHERE idbank_accounts = {id3}")
+    print(f'Withdrawal succesfully made!\nYour new balance is ${new_balance}')
     
 def operation(id):
     exit1 = 'N'
@@ -63,7 +70,10 @@ def operation(id):
         operation_decision = input("What would you like to do with your account? (Deposit, Withdraw, Check balance, Settings, Exit): ")
         if operation_decision == 'Check Balance':
             cursor.execute("SELECT balance FROM bank_accounts WHERE idbank_accounts = %s", (id))
-            print(cursor.fetchone())
+            balance_raw = cursor.fetchone()
+            balance_intermediate = str(balance_raw)
+            balance_final = balance_intermediate.replace("(","").replace(",","").replace(")","").replace("'","")
+            print(f'Your balance is {balance_final}$')
         elif operation_decision == "Deposit":
             get_deposit(id)
         elif operation_decision == "Withdraw":
@@ -71,15 +81,15 @@ def operation(id):
         elif operation_decision == "Settings":
             settings(id)
         else:
-            exit_prompt = input("Would you like to exit?")
+            exit_prompt = input("Would you like to exit?(Y or N)")
             if exit_prompt == 'Y':
                 exit1 = 'Y'
 
 def settings(id):
     exit = 'N'
     while exit != 'Y':
-        what_setting = input("Settings: Change name, Delete account: ")
-        if what_setting == "change name":
+        what_setting = input("Settings: Change Name, Delete Account, Check Everything, Exit: ")
+        if what_setting == "Change Name":
             id1 = str(id)
             id2 = id1.replace("(","").replace(",","").replace(")","")
             id3 = int(id2)
@@ -87,21 +97,30 @@ def settings(id):
             last_name = input("What is your last name?")
             cursor.execute(f"UPDATE bank_accounts SET firstname = '{first_name}', lastname = '{last_name}' WHERE idbank_accounts = {id3}")
             print("Name updated!")
-        elif what_setting == "delete account":
+        elif what_setting == "Delete Account":
             cursor.execute("DELETE FROM bank_accounts WHERE idbank_accounts = %s", (id))
             print("Account has been deleted!")
             exit = 'Y'
-        elif what_setting == "check everything":
+        elif what_setting == "Check Everything":
             cursor.execute("SELECT * FROM bank_accounts WHERE idbank_accounts = %s", (id))
+            print("\n|ID|First name|Last name |      birthday     | Password | Balance |")
             print(cursor.fetchone())
+            
         else:
-            exit_prompt = input("Would you like to exit?")
+            exit_prompt = input("Would you like to exit?(Y or N)")
             if exit_prompt == 'Y':
                 exit = 'Y'
 
 
 exit = 'N'
 while exit != 'Y':
+    print("=================================================================================================")
+    print("---\n|   --  --    --   /--  *  ---  /--  --\n--  |  |  \  |  | |     |  |__ |    |  |\n|   |   __ \ |  |  \__  |  __|  \__  __")
+    print("")
+    print("---\n|  |  --    --  |/  *  --  |--|\n---  |  \  |  | |\  | |  | |__|\n|__|  __ \ |  | | \ | |  | ___|")
+    print("")
+    print("---\n |\n---   --   /--  \n |   |  |  |    \n___  |  |  \__  ")
+    print("=================================================================================================")
     print("Welcome to Francisco Banking Incorporated!")
     has_account = input("Do you have an account? (Y or N)")
     if has_account == 'Y':
@@ -111,7 +130,7 @@ while exit != 'Y':
         if like_to_make_acc == 'Y':
             make_account()
     print("Welcome to Francisco Banking Incorporated!")
-    exit_prompt = input("Would you like to exit?")
+    exit_prompt = input("Would you like to exit?(Y or N)")
     if exit_prompt == 'Y':
         exit = 'Y'
         break
